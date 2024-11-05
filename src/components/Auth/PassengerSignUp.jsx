@@ -83,18 +83,6 @@ export const PassengerSignup = ({ setIsSignup }) => {
             onChange={handleChange}
           />
         </div>
-        <div className="mb-4">
-          <label className="block mb-2">Select Role:</label>
-          <select
-            name="role"
-            value={formData.role}
-            onChange={handleChange}
-            className="w-full p-2 border-2 border-gray-300 rounded-md"
-          >
-            <option value="passenger">Passenger</option>
-            <option value="admin">Admin</option>
-          </select>
-        </div>
         <button className="w-full bg-cyan-500 text-white p-2 rounded-md">
           Sign Up
         </button>
