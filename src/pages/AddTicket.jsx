@@ -1,6 +1,6 @@
 import { useState } from "react";
-import { toast } from "react-toastify"; // For notifications
-import { addTicketToFirebase } from "../utils/firebase.js"; // Function to handle Firebase interaction
+// import { toast } from "react-toastify"; // For notifications
+// import { addTicketToFirebase } from "../utils/firebase.js"; // Function to handle Firebase interaction
 
 const AddTicket = () => {
   const [ticketData, setTicketData] = useState({
@@ -25,29 +25,29 @@ const AddTicket = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    try {
-      // Function to add ticket to Firebase
-      await addTicketToFirebase(ticketData);
-      toast.success("Ticket added successfully!");
-      setTicketData({
-        // Reset form after submission
-        metroName: "",
-        routeName: "",
-        departureStation: "",
-        arrivalStation: "",
-        travelClass: "",
-        price: "",
-        availableSeats: "",
-        departureTime: "",
-        arrivalTime: "",
-        duration: "",
-        dateOfTravel: "",
-        additionalNotes: "",
-      });
-    } catch (error) {
-      toast.error("Failed to add ticket. Please try again.");
-      console.error("Error adding ticket:", error);
-    }
+    // try {
+    //   // Function to add ticket to Firebase
+    //   await addTicketToFirebase(ticketData);
+    //   toast.success("Ticket added successfully!");
+    //   setTicketData({
+    //     // Reset form after submission
+    //     metroName: "",
+    //     routeName: "",
+    //     departureStation: "",
+    //     arrivalStation: "",
+    //     travelClass: "",
+    //     price: "",
+    //     availableSeats: "",
+    //     departureTime: "",
+    //     arrivalTime: "",
+    //     duration: "",
+    //     dateOfTravel: "",
+    //     additionalNotes: "",
+    //   });
+    // } catch (error) {
+    //   toast.error("Failed to add ticket. Please try again.");
+    //   console.error("Error adding ticket:", error);
+    // }
   };
 
   return (

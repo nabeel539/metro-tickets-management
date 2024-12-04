@@ -1,15 +1,16 @@
 /* eslint-disable react/prop-types */
-
 import { useState } from "react";
-import { loginPassenger } from "../../utils/firebase";
-import { useNavigate } from "react-router-dom"; // Import useNavigate
-import { doc, getDoc } from "firebase/firestore"; // Import Firestore methods
-import { db } from "../../utils/firebase"; // Import Firestore instance
+import { Input } from "../ui/input";
+import { Button } from "../ui/button";
+import { loginPassenger } from "../../utils/firebase"; // Firebase login function
+import { useNavigate } from "react-router-dom";
+import { doc, getDoc } from "firebase/firestore";
+import { db } from "../../utils/firebase";
 
 export const PassengerLogin = ({ setIsSignup }) => {
   const [formData, setFormData] = useState({ email: "", password: "" });
   const [error, setError] = useState("");
-  const navigate = useNavigate(); // Initialize the useNavigate hook
+  const navigate = useNavigate();
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -21,27 +22,39 @@ export const PassengerLogin = ({ setIsSignup }) => {
     setError("");
 
     try {
-      // Perform login with Firebase
+      // Firebase Login
       const userCredential = await loginPassenger(
         formData.email,
         formData.password
       );
       const user = userCredential.user;
+      console.log(user);
 
-      // Fetch user role from Firestore
-      const userDoc = await getDoc(doc(db, "users", user.uid)); // Adjust "users" to your Firestore collection name
+      // Fetch role from Firestore
+      const userDocRef = doc(db, "users", user.uid); // Get the user document reference
+      const userDoc = await getDoc(userDocRef);
+
       if (userDoc.exists()) {
         const userData = userDoc.data();
-        const role = userData.role; // Assuming the role is stored under the 'role' field
+        const role = userData.role; // Get role from the Firestore document
 
-        // Redirect based on user role
-        if (role === "admin") {
-          navigate("/admin-dashboard"); // Redirect to Admin Dashboard
+        if (role) {
+          // Save the user data or role to localStorage if needed
+          localStorage.setItem("userRole", role);
+
+          // Redirect based on role
+          if (role === "admin") {
+            navigate("/admin-dashboard");
+          } else if (role === "passenger") {
+            console.log(user);
+            localStorage.setItem("userId", user.uid);
+            navigate("/passenger-dashboard");
+          }
         } else {
-          navigate("/passenger-dashboard");
+          setError("User role not found.");
         }
       } else {
-        setError("User role not found.");
+        setError("No user data found.");
       }
     } catch (err) {
       setError("Failed to login. Please check your credentials.");
@@ -50,46 +63,32 @@ export const PassengerLogin = ({ setIsSignup }) => {
   };
 
   return (
-    <>
-      <h2 className="text-2xl font-bold text-center mb-4">Passenger Login</h2>
-      {error && <p className="text-red-500 text-center">{error}</p>}
-      <form onSubmit={handleSubmit}>
-        <div className="mb-4">
-          <input
-            type="email"
-            name="email"
-            className="w-full p-2 border-2 border-gray-300 rounded-md"
-            placeholder="Email"
-            value={formData.email}
-            onChange={handleChange}
-          />
-        </div>
-        <div className="mb-4">
-          <input
-            type="password"
-            name="password"
-            className="w-full p-2 border-2 border-gray-300 rounded-md"
-            placeholder="Password"
-            value={formData.password}
-            onChange={handleChange}
-          />
-        </div>
-        <button className="w-full bg-cyan-500 text-white p-2 rounded-md">
-          Login
-        </button>
-      </form>
-
-      <div className="mt-4 text-center">
-        <p className="text-sm">
-          New to Metro Tickets?{" "}
-          <span
-            onClick={() => setIsSignup(true)}
-            className="text-cyan-500 cursor-pointer hover:underline"
-          >
-            Sign Up Here
-          </span>
-        </p>
-      </div>
-    </>
+    <form onSubmit={handleSubmit} className="space-y-4">
+      <Input
+        name="email"
+        type="email"
+        placeholder="Email"
+        value={formData.email}
+        onChange={handleChange}
+      />
+      <Input
+        name="password"
+        type="password"
+        placeholder="Password"
+        value={formData.password}
+        onChange={handleChange}
+      />
+      {error && <p className="text-red-500 text-sm">{error}</p>}
+      <Button className="bg-[#FF7F3E] text-white w-full">Login</Button>
+      <p className="text-center text-sm">
+        New to Metro Tickets?{" "}
+        <span
+          className="text-[#4335A7] cursor-pointer"
+          onClick={() => setIsSignup(true)}
+        >
+          Sign Up here
+        </span>
+      </p>
+    </form>
   );
 };

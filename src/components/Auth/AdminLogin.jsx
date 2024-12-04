@@ -1,69 +1,44 @@
 import { useState } from "react";
-import { useNavigate } from "react-router-dom"; // For routing
-import { toast } from "react-toastify";
-import { useAuth } from "../../context/AuthContext";
+import { Button } from "../ui/button";
+import { Input } from "../ui/input";
+import { useNavigate } from "react-router-dom";
 
 export const AdminLogin = () => {
-  const navigate = useNavigate();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
 
-  const { setCurrentUser, setRole } = useAuth();
+  const navigate = useNavigate();
 
-  // Hardcoded admin credentials
-  const adminCredentials = {
-    email: "admin@metro.com",
-    password: "admin123",
-  };
-
-  const handleLogin = (e) => {
+  const handleSubmit = (e) => {
     e.preventDefault();
-    if (
-      email === adminCredentials.email &&
-      password === adminCredentials.password
-    ) {
-      // Successful login, redirect to admin dashboard
-      setCurrentUser({ email });
-      setRole("admin");
+    if (email === "admin@metro.com" && password === "admin123") {
+      alert("Admin Login Successful!");
+      localStorage.setItem("role", "Admin");
       navigate("/admin-dashboard");
     } else {
-      // Invalid credentials
-      toast.error("Invalid email or password");
-      setError("Invalid email or password");
+      setError("Invalid email or password.");
+      setEmail("");
+      setPassword("");
     }
   };
 
   return (
-    <div>
-      <h2 className="text-2xl font-bold text-center mb-4">Admin Login</h2>
-      {error && <p className="text-red-500 text-center">{error}</p>}
-      <form onSubmit={handleLogin}>
-        <div className="mb-4">
-          <input
-            type="email"
-            className="w-full p-2 border-2 border-gray-300 rounded-md"
-            placeholder="Email"
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
-          />
-        </div>
-        <div className="mb-4">
-          <input
-            type="password"
-            className="w-full p-2 border-2 border-gray-300 rounded-md"
-            placeholder="Password"
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-          />
-        </div>
-        <button
-          type="submit"
-          className="w-full bg-indigo-500 text-white p-2 rounded-md"
-        >
-          Login
-        </button>
-      </form>
-    </div>
+    <form onSubmit={handleSubmit} className="space-y-4">
+      <Input
+        type="email"
+        placeholder="Email"
+        value={email}
+        onChange={(e) => setEmail(e.target.value)}
+      />
+      <Input
+        type="password"
+        placeholder="Password"
+        value={password}
+        onChange={(e) => setPassword(e.target.value)}
+      />
+      {error && <p className="text-red-500 text-sm">{error}</p>}
+      <Button className="bg-[#4335A7] text-white w-full">Login</Button>
+    </form>
   );
 };

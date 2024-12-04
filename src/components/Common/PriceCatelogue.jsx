@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { db } from "../utils/firebase.js"; // Adjust the path to your Firebase config
+import { db } from "../../utils/firebase.js"; // Adjust the path to your Firebase config
 import { collection, getDocs } from "firebase/firestore";
 import RouteCard from "./RouteCard";
 

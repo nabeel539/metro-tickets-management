@@ -1,81 +1,60 @@
-import { collection, addDoc, getDocs, query, where } from "firebase/firestore";
-import { db } from "./../utils/firebase"; // Import Firebase configuration
+import { db } from "@/utils/firebase";
+import { collection, addDoc, getDocs, query } from "firebase/firestore";
+// Import Firebase configuration
 
-// Routes data
-const routesData = [
+const routes = [
   {
-    routeId: "routeA-B",
-    start: "Station A",
-    end: "Station B",
-    basePrice: 10.0,
-    classes: {
-      economy: 1.0,
-      business: 1.5,
-      firstClass: 2.0,
-    },
-    tripTypeModifier: {
-      single: 1.0,
-      roundTrip: 1.8,
-    },
+    id: "route_id_1",
+    routeName: "Route A",
+    startStation: "Station 1",
+    endStation: "Station 2",
+    duration: "30 mins",
+    distance: "10 km",
+    ticketTypes: ["Economy", "Business"],
+    createdAt: new Date(),
   },
   {
-    routeId: "routeB-C",
-    start: "Station B",
-    end: "Station C",
-    basePrice: 15.0,
-    classes: {
-      economy: 1.0,
-      business: 1.5,
-      firstClass: 2.0,
-    },
-    tripTypeModifier: {
-      single: 1.0,
-      roundTrip: 1.75,
-    },
+    id: "route_id_2",
+    routeName: "Route B",
+    startStation: "Station 2",
+    endStation: "Station 3",
+    duration: "25 mins",
+    distance: "8 km",
+    ticketTypes: ["Economy"],
+    createdAt: new Date(),
   },
   {
-    routeId: "routeA-C",
-    start: "Station A",
-    end: "Station C",
-    basePrice: 20.0,
-    classes: {
-      economy: 1.0,
-      business: 1.6,
-      firstClass: 2.1,
-    },
-    tripTypeModifier: {
-      single: 1.0,
-      roundTrip: 1.85,
-    },
+    id: "route_id_3",
+    routeName: "Route C",
+    startStation: "Station 3",
+    endStation: "Station 4",
+    duration: "20 mins",
+    distance: "5 km",
+    ticketTypes: ["Economy", "Business"],
+    createdAt: new Date(),
   },
 ];
 
 // Function to seed the routes into Firestore
-const seedRoutes = async () => {
+export const seedRoutes = async () => {
   try {
     const routesCollection = collection(db, "routes");
 
-    for (let route of routesData) {
-      // Check if route with the same routeId already exists
-      const routeQuery = query(
-        routesCollection,
-        where("routeId", "==", route.routeId)
-      );
-      const routeSnapshot = await getDocs(routeQuery);
+    // Check if routes collection already has data
+    const routeQuery = query(routesCollection);
+    const routeSnapshot = await getDocs(routeQuery);
 
-      if (routeSnapshot.empty) {
-        // If no existing route is found, add the new route
+    if (routeSnapshot.empty) {
+      // If no routes are found, seed the routes data
+      for (const route of routes) {
         await addDoc(routesCollection, route);
         console.log(`Route added: ${route.routeName}`);
-      } else {
-        console.log(`Route already exists: ${route.routeName}`);
       }
+      console.log("Routes seeded successfully!");
+    } else {
+      console.log("Routes already exist in the database.");
     }
-
-    console.log("Route seeding completed!");
   } catch (error) {
-    console.error("Error adding routes:", error);
+    console.error("Error seeding routes:", error);
   }
 };
-
-export default seedRoutes;

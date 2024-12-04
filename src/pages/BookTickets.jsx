@@ -1,284 +1,163 @@
-/* eslint-disable react/prop-types */
-// /* eslint-disable react/prop-types */
-// import { useState } from "react";
-// import { db } from "../utils/firebase.js"; // Adjust the path to your Firebase config
-// import { collection, addDoc } from "firebase/firestore";
-// import { useNavigate } from "react-router-dom";
-
-// const TicketBookingForm = ({ route, passenger }) => {
-//   const { start, end, basePrice, classes, tripTypeModifier } = route;
-//   const [numPassengers, setNumPassengers] = useState(1);
-//   const [selectedClass, setSelectedClass] = useState("economy");
-//   const [selectedTripType, setSelectedTripType] = useState("single");
-//   const [paymentMethod, setPaymentMethod] = useState("cash");
-//   const navigate = useNavigate();
-
-//   // Calculate price based on number of passengers, travel class, and trip type
-//   const calculateTotalPrice = () => {
-//     const classMultiplier = classes[selectedClass];
-//     const tripTypeMultiplier = tripTypeModifier[selectedTripType];
-//     return basePrice * numPassengers * classMultiplier * tripTypeMultiplier;
-//   };
-
-//   const handleBooking = async () => {
-//     const totalPrice = calculateTotalPrice();
-
-//     const ticketData = {
-//       passengerId: passenger.id, // Replace with the actual passenger ID
-//       routeId: route.id, // Replace with the actual route ID
-//       startStation: start,
-//       endStation: end,
-//       basePrice,
-//       travelClass: selectedClass,
-//       tripType: selectedTripType,
-//       numPassengers,
-//       totalPrice,
-//       paymentMethod,
-//       status: "Booked",
-//       createdAt: new Date(),
-//     };
-
-//     try {
-//       await addDoc(collection(db, "tickets"), ticketData);
-//       alert("Ticket booked successfully!");
-//       navigate("/passenger-dashboard"); // Redirect to dashboard or another relevant page
-//     } catch (error) {
-//       console.error("Error booking ticket:", error);
-//       alert("Failed to book the ticket. Please try again.");
-//     }
-//   };
-
-//   return (
-//     <div className="p-6 border rounded-md shadow-md max-w-md mx-auto">
-//       <h3 className="text-lg font-semibold mb-4">
-//         {start} ➔ {end}
-//       </h3>
-//       <p>Base Price: ${basePrice.toFixed(2)}</p>
-
-//       <div className="my-3">
-//         <label>Number of Passengers:</label>
-//         <input
-//           type="number"
-//           min="1"
-//           value={numPassengers}
-//           onChange={(e) => setNumPassengers(Number(e.target.value))}
-//           className="ml-2 border rounded px-2 py-1"
-//         />
-//       </div>
-
-//       <div className="my-3">
-//         <label>Travel Class:</label>
-//         <select
-//           value={selectedClass}
-//           onChange={(e) => setSelectedClass(e.target.value)}
-//           className="ml-2 border rounded px-2 py-1"
-//         >
-//           {Object.keys(classes).map((className) => (
-//             <option key={className} value={className}>
-//               {className.charAt(0).toUpperCase() + className.slice(1)}
-//             </option>
-//           ))}
-//         </select>
-//       </div>
-
-//       <div className="my-3">
-//         <label>Trip Type:</label>
-//         <select
-//           value={selectedTripType}
-//           onChange={(e) => setSelectedTripType(e.target.value)}
-//           className="ml-2 border rounded px-2 py-1"
-//         >
-//           {Object.keys(tripTypeModifier).map((tripType) => (
-//             <option key={tripType} value={tripType}>
-//               {tripType.charAt(0).toUpperCase() + tripType.slice(1)} Trip
-//             </option>
-//           ))}
-//         </select>
-//       </div>
-
-//       <div className="my-3">
-//         <label>Payment Method:</label>
-//         <div className="flex items-center mt-2">
-//           <input
-//             type="radio"
-//             id="cash"
-//             value="cash"
-//             checked={paymentMethod === "cash"}
-//             onChange={() => setPaymentMethod("cash")}
-//             className="mr-2"
-//           />
-//           <label htmlFor="cash">Cash</label>
-//           <input
-//             type="radio"
-//             id="online"
-//             value="online"
-//             checked={paymentMethod === "online"}
-//             onChange={() => setPaymentMethod("online")}
-//             className="ml-4 mr-2"
-//           />
-//           <label htmlFor="online">Online</label>
-//         </div>
-//       </div>
-
-//       <div className="mt-4 text-center">
-//         <p className="text-xl font-semibold">
-//           Total Price: ${calculateTotalPrice().toFixed(2)}
-//         </p>
-//       </div>
-
-//       <button
-//         onClick={handleBooking}
-//         className="bg-blue-500 hover:bg-blue-600 text-white font-semibold mt-4 px-4 py-2 rounded w-full"
-//       >
-//         Book Ticket
-//       </button>
-//     </div>
-//   );
-// };
-
-// export default TicketBookingForm;
-import { useState } from "react";
-import { db } from "../utils/firebase.js"; // Adjust the path to your Firebase config
-import { collection, addDoc } from "firebase/firestore";
+import { useState, useEffect } from "react";
+import { createBooking, fetchRoutes } from "../utils/firebaseUtils"; // Utility functions for interacting with Firestore
+import { toast } from "react-toastify";
 import { useNavigate } from "react-router-dom";
 
-const TicketBookingForm = ({ route, passenger }) => {
-  // Default values in case route is undefined or incomplete
-  const {
-    start = "Unknown Start",
-    end = "Unknown End",
-    basePrice = 0,
-    classes = { economy: 1, business: 1.5 }, // Example values if classes are missing
-    tripTypeModifier = { single: 1, round: 1.8 }, // Example values for trip types
-  } = route || {}; // Ensure route has default values if undefined
+const BookingForm = () => {
+  const userId = localStorage.getItem("userId");
+  const [routes, setRoutes] = useState([]);
+  const [fromStation, setFromStation] = useState("");
+  const [toStation, setToStation] = useState("");
+  const [ticketType, setTicketType] = useState("Economy");
+  const [numberOfTickets, setNumberOfTickets] = useState(1);
+  const [paymentMethod, setPaymentMethod] = useState("");
+  const [price, setPrice] = useState(0); // Price will be dynamically updated
+  const [loading, setLoading] = useState(false);
 
-  const [numPassengers, setNumPassengers] = useState(1);
-  const [selectedClass, setSelectedClass] = useState("economy");
-  const [selectedTripType, setSelectedTripType] = useState("single");
-  const [paymentMethod, setPaymentMethod] = useState("cash");
   const navigate = useNavigate();
+  // Fetch routes from Firestore
+  useEffect(() => {
+    const loadRoutes = async () => {
+      try {
+        const fetchedRoutes = await fetchRoutes();
+        setRoutes(fetchedRoutes);
+      } catch (error) {
+        console.error("Error fetching routes:", error);
+        toast.error("Failed to load routes.");
+      }
+    };
+    loadRoutes();
+  }, []);
 
-  // Calculate price based on number of passengers, travel class, and trip type
-  const calculateTotalPrice = () => {
-    const classMultiplier = classes[selectedClass] || 1;
-    const tripTypeMultiplier = tripTypeModifier[selectedTripType] || 1;
-    return basePrice * numPassengers * classMultiplier * tripTypeMultiplier;
-  };
+  // Calculate the price based on selected ticket type, number of tickets, etc.
+  useEffect(() => {
+    const selectedRoute = routes.find(
+      (route) =>
+        route.startStation === fromStation && route.endStation === toStation
+    );
+    if (selectedRoute) {
+      let basePrice = ticketType === "Economy" ? 10 : 20; // Example base price logic
+      setPrice(basePrice * numberOfTickets); // Set price based on number of tickets and type
+    }
+  }, [fromStation, toStation, ticketType, numberOfTickets, routes]);
 
   const handleBooking = async () => {
-    const totalPrice = calculateTotalPrice();
+    if (!userId) {
+      alert("User is not logged in");
+      return;
+    }
 
-    const ticketData = {
-      passengerId: passenger?.id || "Unknown Passenger",
-      routeId: route?.id || "Unknown Route",
-      startStation: start,
-      endStation: end,
-      basePrice,
-      travelClass: selectedClass,
-      tripType: selectedTripType,
-      numPassengers,
-      totalPrice,
+    if (!fromStation || !toStation || !ticketType || !paymentMethod || !price) {
+      toast.error("Please complete all fields!");
+      return;
+    }
+
+    setLoading(true);
+
+    const bookingData = {
+      userId,
+      fromStation,
+      toStation,
+      ticketType,
+      numberOfTickets,
       paymentMethod,
-      status: "Booked",
-      createdAt: new Date(),
+      price,
+      status: "confirmed",
+      createdAt: new Date().toISOString(),
     };
 
     try {
-      await addDoc(collection(db, "tickets"), ticketData);
+      await createBooking(bookingData); // Create booking in Firestore
       alert("Ticket booked successfully!");
-      navigate("/passenger-dashboard");
+      navigate("/passenger-dashboard/bookings");
+
+      // Reset the form
+      setFromStation("");
+      setToStation("");
+      setTicketType("Economy");
+      setNumberOfTickets(1);
+      setPaymentMethod("");
+      setPrice(0);
     } catch (error) {
+      alert("Failed to book ticket!");
       console.error("Error booking ticket:", error);
-      alert("Failed to book the ticket. Please try again.");
     }
+
+    setLoading(false);
   };
 
   return (
-    <div className="p-6 border rounded-md shadow-md max-w-md mx-auto">
-      <h3 className="text-lg font-semibold mb-4">
-        {start} ➔ {end}
-      </h3>
-      <p>Base Price: ${basePrice.toFixed(2)}</p>
+    <div>
+      {/* Booking form UI */}
+      <h2 className="text-2xl font-semibold mb-4">Book Your Ticket</h2>
+      <form className="space-y-4">
+        {/* Select inputs for fromStation, toStation, etc. */}
+        <select
+          value={fromStation}
+          onChange={(e) => setFromStation(e.target.value)}
+          className="w-full p-2 border rounded-md"
+        >
+          <option value="">From Station</option>
+          {routes.map((route) => (
+            <option key={route.id} value={route.startStation}>
+              {route.startStation}
+            </option>
+          ))}
+        </select>
 
-      <div className="my-3">
-        <label>Number of Passengers:</label>
+        <select
+          value={toStation}
+          onChange={(e) => setToStation(e.target.value)}
+          className="w-full p-2 border rounded-md"
+        >
+          <option value="">To Station</option>
+          {routes
+            .filter((route) => route.startStation === fromStation)
+            .map((route) => (
+              <option key={route.id} value={route.endStation}>
+                {route.endStation}
+              </option>
+            ))}
+        </select>
+
+        <select
+          value={ticketType}
+          onChange={(e) => setTicketType(e.target.value)}
+          className="w-full p-2 border rounded-md"
+        >
+          <option value="Economy">Economy</option>
+          <option value="Business">Business</option>
+        </select>
+
         <input
           type="number"
+          value={numberOfTickets}
+          onChange={(e) => setNumberOfTickets(e.target.value)}
           min="1"
-          value={numPassengers}
-          onChange={(e) => setNumPassengers(Number(e.target.value))}
-          className="ml-2 border rounded px-2 py-1"
+          className="w-full p-2 border rounded-md"
         />
-      </div>
 
-      <div className="my-3">
-        <label>Travel Class:</label>
-        <select
-          value={selectedClass}
-          onChange={(e) => setSelectedClass(e.target.value)}
-          className="ml-2 border rounded px-2 py-1"
+        <input
+          type="text"
+          value={paymentMethod}
+          onChange={(e) => setPaymentMethod(e.target.value)}
+          placeholder="Payment Method"
+          className="w-full p-2 border rounded-md"
+        />
+
+        <div className="font-bold text-lg">Price: ${price}</div>
+
+        <button
+          type="button"
+          onClick={handleBooking}
+          disabled={loading}
+          className="w-full p-2 mt-4 bg-blue-600 text-white rounded-md"
         >
-          {Object.keys(classes).map((className) => (
-            <option key={className} value={className}>
-              {className.charAt(0).toUpperCase() + className.slice(1)}
-            </option>
-          ))}
-        </select>
-      </div>
-
-      <div className="my-3">
-        <label>Trip Type:</label>
-        <select
-          value={selectedTripType}
-          onChange={(e) => setSelectedTripType(e.target.value)}
-          className="ml-2 border rounded px-2 py-1"
-        >
-          {Object.keys(tripTypeModifier).map((tripType) => (
-            <option key={tripType} value={tripType}>
-              {tripType.charAt(0).toUpperCase() + tripType.slice(1)} Trip
-            </option>
-          ))}
-        </select>
-      </div>
-
-      <div className="my-3">
-        <label>Payment Method:</label>
-        <div className="flex items-center mt-2">
-          <input
-            type="radio"
-            id="cash"
-            value="cash"
-            checked={paymentMethod === "cash"}
-            onChange={() => setPaymentMethod("cash")}
-            className="mr-2"
-          />
-          <label htmlFor="cash">Cash</label>
-          <input
-            type="radio"
-            id="online"
-            value="online"
-            checked={paymentMethod === "online"}
-            onChange={() => setPaymentMethod("online")}
-            className="ml-4 mr-2"
-          />
-          <label htmlFor="online">Online</label>
-        </div>
-      </div>
-
-      <div className="mt-4 text-center">
-        <p className="text-xl font-semibold">
-          Total Price: ${calculateTotalPrice().toFixed(2)}
-        </p>
-      </div>
-
-      <button
-        onClick={handleBooking}
-        className="bg-blue-500 hover:bg-blue-600 text-white font-semibold mt-4 px-4 py-2 rounded w-full"
-      >
-        Book Ticket
-      </button>
+          {loading ? "Booking..." : "Confirm Booking"}
+        </button>
+      </form>
     </div>
   );
 };
 
-export default TicketBookingForm;
+export default BookingForm;
