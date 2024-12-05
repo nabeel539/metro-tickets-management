@@ -1,28 +1,47 @@
 import { useEffect, useState } from "react";
-import { doc, getDoc, setDoc } from "firebase/firestore"; // Firestore imports
-import { db } from "../utils/firebase"; // Firestore instance
-import { auth } from "../utils/firebase"; // Firebase auth instance
+import { doc, getDoc, setDoc } from "firebase/firestore";
+import { updateEmail, onAuthStateChanged } from "firebase/auth";
+import { db, auth } from "../utils/firebase";
+import { Link } from "react-router-dom";
+import {
+  Card,
+  CardContent,
+  CardHeader,
+  CardTitle,
+  CardDescription,
+} from "../components/ui/card";
+import { Button } from "../components/ui/button";
+import { Input } from "../components/ui/input";
+import { assets } from "@/assets/assets";
 
 const ProfilePage = () => {
   const [formData, setFormData] = useState({ name: "", email: "" });
   const [isEditing, setIsEditing] = useState(false);
+  const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
 
   useEffect(() => {
-    const fetchUserData = async () => {
-      const user = auth.currentUser;
+    const unsubscribe = onAuthStateChanged(auth, async (user) => {
       if (user) {
-        const userDoc = await getDoc(doc(db, "users", user.uid));
-        if (userDoc.exists()) {
-          setFormData(userDoc.data());
-        } else {
-          setError("User data not found");
+        try {
+          const userDoc = await getDoc(doc(db, "users", user.uid));
+          if (userDoc.exists()) {
+            setFormData(userDoc.data());
+          } else {
+            setError("User data not found.");
+          }
+        } catch (err) {
+          setError("Failed to fetch user data. Please try again later.");
+          console.error("Fetch Error:", err);
         }
+      } else {
+        setError("No user is logged in.");
       }
-    };
+      setLoading(false);
+    });
 
-    fetchUserData();
+    return () => unsubscribe(); // Clean up the listener on component unmount
   }, []);
 
   const handleChange = (e) => {
@@ -36,67 +55,120 @@ const ProfilePage = () => {
     setSuccess("");
 
     try {
+      const user = auth.currentUser;
+      if (!user) {
+        setError("User is not logged in.");
+        return;
+      }
+
+      // Update email in Firebase Authentication
+      if (formData.email !== user.email) {
+        await updateEmail(user, formData.email);
+      }
+
       // Update the user data in Firestore
-      await setDoc(doc(db, "users", auth.currentUser.uid), formData, { merge: true });
+      await setDoc(doc(db, "users", user.uid), formData, { merge: true });
+
       setSuccess("Profile updated successfully!");
-      setIsEditing(false); // Exit edit mode after successful update
+      setIsEditing(false);
     } catch (error) {
-      setError("Failed to update profile. Please try again.");
+      if (error.code === "auth/requires-recent-login") {
+        setError("Please log in again to update your email.");
+      } else {
+        setError("Failed to update profile. Please try again.");
+      }
       console.error("Update Error:", error);
     }
   };
 
+  if (loading) {
+    return <p className="text-center">Loading...</p>;
+  }
+
   return (
-    <div className="max-w-md mx-auto mt-10 p-5 border rounded-lg shadow-md">
-      <h2 className="text-2xl font-bold text-center mb-4">Profile Details</h2>
-      {error && <p className="text-red-500 text-center">{error}</p>}
-      {success && <p className="text-green-500 text-center">{success}</p>}
-      {isEditing ? (
-        <form onSubmit={handleSubmit}>
-          <div className="mb-4">
-            <input
-              type="text"
-              name="name"
-              className="w-full p-2 border-2 border-gray-300 rounded-md"
-              placeholder="Full Name"
-              value={formData.name}
-              onChange={handleChange}
-            />
-          </div>
-          <div className="mb-4">
-            <input
-              type="email"
-              name="email"
-              className="w-full p-2 border-2 border-gray-300 rounded-md"
-              placeholder="Email"
-              value={formData.email}
-              onChange={handleChange}
-            />
-          </div>
-          <button type="submit" className="w-full bg-cyan-500 text-white p-2 rounded-md">
-            Save Changes
-          </button>
-          <button
-            type="button"
-            className="mt-2 w-full bg-gray-300 text-gray-700 p-2 rounded-md"
-            onClick={() => setIsEditing(false)}
+    <>
+      <div className="bg-white shadow-md p-4">
+        <div className="container mx-auto flex justify-between items-center">
+          <Link
+            to="/passenger-dashboard"
+            className="text-xl font-bold text-teal-600"
           >
-            Cancel
-          </button>
-        </form>
-      ) : (
-        <div className="text-center">
-          <p><strong>Name:</strong> {formData.name}</p>
-          <p><strong>Email:</strong> {formData.email}</p>
-          <button
-            className="mt-4 bg-cyan-500 text-white p-2 rounded-md"
-            onClick={() => setIsEditing(true)}
-          >
-            Edit
-          </button>
+            Metro Tickets
+          </Link>
         </div>
-      )}
-    </div>
+      </div>
+      <div className="flex flex-col items-center justify-center min-h-screen bg-[url('/profilebg.jpg')] bg-cover bg-center">
+        <Card className="w-full max-w-md mx-4 bg-white/40 backdrop-blur-md border border-white/20">
+          <CardHeader>
+            <div className="w-20 h-20 rounded-full bg-[#134f87] relative bottom-[20px]">
+              <img src={assets.profile} className="w-[79px]" />
+            </div>
+            <CardTitle>Profile Details</CardTitle>
+            <CardDescription className="text-white">
+              {isEditing
+                ? "Edit your profile information below."
+                : "View and update your profile details."}
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            {error && <p className="text-red-500 text-sm mb-4">{error}</p>}
+            {success && (
+              <p className="text-green-500 text-sm mb-4">{success}</p>
+            )}
+            {isEditing ? (
+              <form onSubmit={handleSubmit} className="space-y-4 text-xs">
+                <Input
+                  type="text"
+                  name="name"
+                  placeholder="Full Name"
+                  value={formData.name}
+                  onChange={handleChange}
+                  required
+                />
+                <Input
+                  type="email"
+                  name="email"
+                  placeholder="Email"
+                  value={formData.email}
+                  onChange={handleChange}
+                  required
+                />
+                <div className="flex gap-4">
+                  <Button type="submit" className="flex-1">
+                    Save Changes
+                  </Button>
+                  <Button
+                    type="button"
+                    className="flex-1 bg-gray-300 hover:bg-gray-400"
+                    onClick={() => setIsEditing(false)}
+                  >
+                    Cancel
+                  </Button>
+                </div>
+              </form>
+            ) : (
+              <div className="space-y-4 text-xs">
+                <p>
+                  <strong>Name:</strong> {formData.name}
+                </p>
+                <p>
+                  <strong>Email:</strong> {formData.email}
+                </p>
+                <Button className="w-full" onClick={() => setIsEditing(true)}>
+                  Edit
+                </Button>
+              </div>
+            )}
+          </CardContent>
+        </Card>
+        <Link
+          to="/passenger-dashboard"
+          className="mt-6 text-teal-600 hover:underline"
+        >
+          Back to Dashboard
+        </Link>
+      </div>
+    </>
   );
 };
 

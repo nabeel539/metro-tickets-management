@@ -1,6 +1,7 @@
 /* eslint-disable react/prop-types */
 import { fetchUserBookings, cancelBooking } from "@/utils/firebaseUtils"; // Import the cancelBooking function
 import { useState, useEffect } from "react";
+import { Link } from "react-router-dom";
 import { toast } from "react-toastify";
 
 const BookingHistory = () => {
@@ -48,18 +49,36 @@ const BookingHistory = () => {
   };
 
   if (!bookings.length) {
-    return <p>No bookings found.</p>;
+    return <p className="text-sm text-gray-600">No bookings found.</p>;
   }
 
   return (
-    <div className="mt-8">
-      <h3 className="text-xl font-semibold mb-4">Your Previous Bookings</h3>
-      <div className="space-y-4">
+    <div className="bg-[url('/profilebg.jpg')] bg-cover bg-center">
+      <div className="bg-white shadow-md p-4">
+        <div className="container mx-auto flex justify-between items-center">
+          <Link
+            to="/passenger-dashboard"
+            className="text-xl font-bold text-teal-600"
+          >
+            Metro Tickets
+          </Link>
+        </div>
+      </div>
+      <h3 className="text-lg font-semibold text-center mt-2 text-white">
+        Your Previous Bookings
+      </h3>
+      <div className="grid grid-cols-1 gap-4 md:grid-cols-3 lg:grid-cols-4 p-5">
         {bookings.map((booking) => (
           <div
             key={booking.id}
-            className="p-4 border rounded-lg shadow-md flex flex-col space-y-2"
+            className="p-2  rounded-lg shadow-sm bg-white/30 backdrop-blur-md border border-white/20 text-[12px]"
           >
+            <p>
+              <strong>Metro Name:</strong> {booking.metroName}
+            </p>
+            <p>
+              <strong>Trip Type:</strong> {booking.tripType}
+            </p>
             <p>
               <strong>From:</strong> {booking.fromStation}
             </p>
@@ -76,17 +95,25 @@ const BookingHistory = () => {
               <strong>Price:</strong> ${booking.price}
             </p>
             <p>
-              <strong>Status:</strong> {booking.status}
+              <strong>Status:</strong>{" "}
+              <span
+                className={`font-semibold ${
+                  booking.status === "confirmed"
+                    ? "text-green-600"
+                    : "text-red-600"
+                }`}
+              >
+                {booking.status}
+              </span>
             </p>
             <p>
               <strong>Booking Date:</strong>{" "}
               {new Date(booking.createdAt).toLocaleDateString()}
             </p>
-            {/* Render the Cancel button only if the booking is not already canceled */}
             {booking.status !== "canceled" && (
               <button
                 onClick={() => handleCancelBooking(booking.id)}
-                className="mt-4 px-4 py-2 bg-red-600 text-white rounded-md"
+                className="mt-2 px-2 py-1 bg-red-600 text-white rounded-md text-[12px] hover:bg-red-700"
               >
                 Cancel Booking
               </button>

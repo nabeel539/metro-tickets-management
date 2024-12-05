@@ -8,6 +8,7 @@ import AdminDsPage from "./pages/AdminDsPage";
 import BookingForm from "./pages/BookTickets";
 import TicketsAdmin from "./pages/TicketsAdmin";
 import ManagePassengers from "./pages/ManagePassengers";
+import "react-toastify/dist/ReactToastify.css";
 
 function App() {
   return (

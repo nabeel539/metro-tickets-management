@@ -6,9 +6,11 @@ import {
   query,
   where,
   doc,
+  getDoc,
 } from "firebase/firestore";
 import { db } from "./firebase";
 
+// get routes
 export const fetchRoutes = async () => {
   try {
     const routesCollection = collection(db, "routes");
@@ -67,5 +69,39 @@ export const cancelBooking = async (bookingId) => {
   } catch (error) {
     console.error("Error canceling booking:", error);
     throw new Error("Failed to cancel booking.");
+  }
+};
+
+export const updateAvailableTickets = async (routeId, ticketsBooked) => {
+  // console.log("Updating available tickets");
+  // console.log("Route ID:", routeId);
+  // console.log("Tickets Booked:", ticketsBooked);
+
+  try {
+    const routeRef = doc(db, "routes", routeId);
+    const routeSnapshot = await getDoc(routeRef);
+
+    if (!routeSnapshot.exists()) {
+      throw new Error("Route does not exist.");
+    }
+
+    const routeData = routeSnapshot.data();
+    console.log("Route Data:", routeData);
+
+    const currentAvailableTickets = routeData.availableTickets || 0;
+
+    if (ticketsBooked > currentAvailableTickets) {
+      throw new Error("Not enough tickets available.");
+    }
+
+    const updatedAvailableTickets = currentAvailableTickets - ticketsBooked;
+    await updateDoc(routeRef, {
+      availableTickets: updatedAvailableTickets,
+    });
+
+    console.log("Available tickets updated successfully.");
+  } catch (error) {
+    console.error("Failed to update available tickets:", error);
+    throw error;
   }
 };

@@ -2,6 +2,9 @@
 body {
   font-family: "Poppins", sans-serif;
 }
+p {
+  padding: 4px 2px;
+}
 
 @tailwind base;
 @tailwind components;

@@ -9,8 +9,11 @@ const routes = [
     startStation: "Station 1",
     endStation: "Station 2",
     duration: "30 mins",
-    distance: "10 km",
+    distance: 10, // distance in kilometers
     ticketTypes: ["Economy", "Business"],
+    metroName: "Metro A",
+    availableTickets: 50,
+    basePrice: 2, // base price per km
     createdAt: new Date(),
   },
   {
@@ -19,8 +22,11 @@ const routes = [
     startStation: "Station 2",
     endStation: "Station 3",
     duration: "25 mins",
-    distance: "8 km",
+    distance: 8,
     ticketTypes: ["Economy"],
+    metroName: "Metro B",
+    availableTickets: 30,
+    basePrice: 2,
     createdAt: new Date(),
   },
   {
@@ -29,8 +35,11 @@ const routes = [
     startStation: "Station 3",
     endStation: "Station 4",
     duration: "20 mins",
-    distance: "5 km",
+    distance: 5,
     ticketTypes: ["Economy", "Business"],
+    metroName: "Metro C",
+    availableTickets: 20,
+    basePrice: 2,
     createdAt: new Date(),
   },
 ];

@@ -6,6 +6,7 @@ import { loginPassenger } from "../../utils/firebase"; // Firebase login functio
 import { useNavigate } from "react-router-dom";
 import { doc, getDoc } from "firebase/firestore";
 import { db } from "../../utils/firebase";
+import { toast } from "react-toastify";
 
 export const PassengerLogin = ({ setIsSignup }) => {
   const [formData, setFormData] = useState({ email: "", password: "" });
@@ -46,7 +47,7 @@ export const PassengerLogin = ({ setIsSignup }) => {
           if (role === "admin") {
             navigate("/admin-dashboard");
           } else if (role === "passenger") {
-            console.log(user);
+            toast.success("Welcome, passenger!");
             localStorage.setItem("userId", user.uid);
             navigate("/passenger-dashboard");
           }
