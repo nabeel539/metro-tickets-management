@@ -2,6 +2,7 @@ import { useState } from "react";
 import { Button } from "../ui/button";
 import { Input } from "../ui/input";
 import { useNavigate } from "react-router-dom";
+import { toast } from "react-toastify";
 
 export const AdminLogin = () => {
   const [email, setEmail] = useState("");
@@ -13,7 +14,7 @@ export const AdminLogin = () => {
   const handleSubmit = (e) => {
     e.preventDefault();
     if (email === "admin@metro.com" && password === "admin123") {
-      alert("Admin Login Successful!");
+      toast.success("Login Successful!");
       localStorage.setItem("role", "Admin");
       navigate("/admin-dashboard");
     } else {

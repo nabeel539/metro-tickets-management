@@ -73,10 +73,6 @@ export const cancelBooking = async (bookingId) => {
 };
 
 export const updateAvailableTickets = async (routeId, ticketsBooked) => {
-  // console.log("Updating available tickets");
-  // console.log("Route ID:", routeId);
-  // console.log("Tickets Booked:", ticketsBooked);
-
   try {
     const routeRef = doc(db, "routes", routeId);
     const routeSnapshot = await getDoc(routeRef);
@@ -103,5 +99,47 @@ export const updateAvailableTickets = async (routeId, ticketsBooked) => {
   } catch (error) {
     console.error("Failed to update available tickets:", error);
     throw error;
+  }
+};
+
+// Fetch all users
+export const getUsers = async () => {
+  try {
+    const usersRef = collection(db, "users");
+    const snapshot = await getDocs(usersRef);
+    const users = snapshot.docs.map((doc) => ({ id: doc.id, ...doc.data() }));
+    return users;
+  } catch (error) {
+    console.error("Error fetching users:", error);
+    return [];
+  }
+};
+
+// Fetch all bookings (tickets)
+export const getBookings = async () => {
+  try {
+    const bookingsRef = collection(db, "bookings");
+    const snapshot = await getDocs(bookingsRef);
+    const bookings = snapshot.docs.map((doc) => ({
+      id: doc.id,
+      ...doc.data(),
+    }));
+    return bookings;
+  } catch (error) {
+    console.error("Error fetching bookings:", error);
+    return [];
+  }
+};
+
+// Fetch all routes
+export const getRoutes = async () => {
+  try {
+    const routesRef = collection(db, "routes");
+    const snapshot = await getDocs(routesRef);
+    const routes = snapshot.docs.map((doc) => ({ id: doc.id, ...doc.data() }));
+    return routes;
+  } catch (error) {
+    console.error("Error fetching routes:", error);
+    return [];
   }
 };

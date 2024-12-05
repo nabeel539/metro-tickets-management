@@ -9,6 +9,11 @@ const AdminDsPage = () => {
         <h1 className="text-3xl font-bold mb-6">Metro Admin Panel</h1>
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           <FunctionCard
+            title="Manage Routes & Tickets"
+            description="Manage Routes Tickets etc."
+            navigateTo="/admin-dashboard/tickets-routes"
+          />
+          <FunctionCard
             title="Manage Passengers"
             description="Manage passenger details and their associated ticket history."
             navigateTo="/admin-dashboard/passenger"
@@ -30,7 +35,7 @@ const AdminDsPage = () => {
   );
 };
 
-const Navbar = () => {
+export const Navbar = () => {
   const navigate = useNavigate();
 
   const handleLogout = () => {
@@ -40,9 +45,11 @@ const Navbar = () => {
 
   return (
     <nav className="bg-gray-800 text-white p-4 flex justify-between items-center">
-      <h2 className="text-xl font-semibold">Admin Panel</h2>
+      <Link to={"/admin-dashboard"}>
+        <h2 className="text-xl font-semibold">Admin Panel</h2>
+      </Link>
       <ul className="flex space-x-4">
-        <Link to="">
+        <Link to="/admin-dashboard">
           <li className="cursor-pointer hover:underline">Dashboard</li>
         </Link>
         <li onClick={handleLogout} className="cursor-pointer hover:underline">
@@ -76,8 +83,8 @@ const FunctionCard = ({ title, description, navigateTo }) => {
 
 const Footer = () => {
   return (
-    <footer className="bg-gray-800 text-white text-center p-4">
-      <p>&copy; 2023 Your Company. All rights reserved.</p>
+    <footer className="bg-gray-800 text-white/45 text-center p-4 text-xs">
+      <p>&copy; 2024 Metro Ticket Bookings. All rights reserved.</p>
     </footer>
   );
 };
