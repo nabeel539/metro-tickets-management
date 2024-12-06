@@ -17,6 +17,8 @@ const TicketManagementPage = () => {
   const [loading, setLoading] = useState(true);
   const [selectedTicket, setSelectedTicket] = useState(null);
   const [isSheetOpen, setIsSheetOpen] = useState(false);
+  const [page, setPage] = useState(1);
+  const itemsPerPage = 10;
 
   useEffect(() => {
     const fetchTickets = async () => {
@@ -73,6 +75,13 @@ const TicketManagementPage = () => {
     }
   };
 
+  // Pagination logic
+  const totalPages = Math.ceil(tickets.length / itemsPerPage);
+  const paginatedTickets = tickets.slice(
+    (page - 1) * itemsPerPage,
+    page * itemsPerPage
+  );
+
   return (
     <>
       <Navbar />
@@ -91,7 +100,7 @@ const TicketManagementPage = () => {
                 <th className="p-2 border-b">From Station</th>
                 <th className="p-2 border-b">To Station</th>
                 <th className="p-2 border-b">Trip Type</th>
-                <th className="p-2 border-b">Price</th>
+                <th className="p-2 border-b">Total Price</th>
                 <th className="p-2 border-b">Number of Tickets</th>
                 <th className="p-2 border-b">Payment Method</th>
                 <th className="p-2 border-b">Status</th>
@@ -99,7 +108,7 @@ const TicketManagementPage = () => {
               </tr>
             </thead>
             <tbody>
-              {tickets.map((ticket, index) => (
+              {paginatedTickets.map((ticket, index) => (
                 <tr
                   key={ticket.id}
                   className={`${
@@ -127,6 +136,35 @@ const TicketManagementPage = () => {
               ))}
             </tbody>
           </table>
+
+          {/* Pagination Controls */}
+          <div className="mt-4 text-center">
+            <button
+              onClick={() => page > 1 && setPage(page - 1)}
+              className={`px-3 py-1 mx-2 ${
+                page === 1
+                  ? "bg-gray-300 cursor-not-allowed"
+                  : "bg-blue-500 text-white"
+              }`}
+              disabled={page === 1}
+            >
+              Previous
+            </button>
+            <span>
+              Page {page} of {totalPages}
+            </span>
+            <button
+              onClick={() => page < totalPages && setPage(page + 1)}
+              className={`px-3 py-1 mx-2 ${
+                page === totalPages
+                  ? "bg-gray-300 cursor-not-allowed"
+                  : "bg-blue-500 text-white"
+              }`}
+              disabled={page === totalPages}
+            >
+              Next
+            </button>
+          </div>
         </div>
       )}
 
